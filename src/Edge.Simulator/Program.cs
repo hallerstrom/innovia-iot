@@ -22,30 +22,66 @@ catch (Exception ex)
     throw;
 }
 
+// 👇 Lista över dina devices (serial 1–5)
+var devices = new[]
+{
+    new { serial = "1", model = "TempIoT" },
+    new { serial = "2", model = "TempIoT" },
+    new { serial = "3", model = "TempIoT" },
+    new { serial = "4", model = "TempIoT" },
+    new { serial = "5", model = "TempIoT" },
+
+    new { serial = "6", model = "CO2IoT" },
+    new { serial = "7", model = "CO2IoT" },
+    new { serial = "8", model = "CO2IoT" },
+    new { serial = "9", model = "CO2IoT" },
+    new { serial = "0", model = "CO2IoT" },
+};
+
 var rand = new Random();
+
 while (true)
 {
-    var payload = new
+    foreach (var device in devices)
     {
-        deviceId = "dev-101",
-        apiKey = "dev-101-key",
-        timestamp = DateTimeOffset.UtcNow,
-        metrics = new object[]
+        object[] metrics;
+
+            if (device.model == "TempIoT")
+            {
+                metrics = new object[]
+                {
+                    new { type = "temperature", value = 20.0 + rand.NextDouble() * 4, unit = "C" }
+                };
+            }
+            else
+            {
+                metrics = new object[]
+                {
+                    new { type = "co2", value = 700 + rand.Next(0, 800), unit = "ppm" }
+                };
+            }
+
+        var payload = new
         {
-            new { type = "temperature", value = 21.5 + rand.NextDouble(), unit = "C" },
-            new { type = "co2", value = 900 + rand.Next(0, 700), unit = "ppm" }
-        }
-    };
+            deviceId = device.serial, 
+            apiKey = $"{device.serial}-key",
+            timestamp = DateTimeOffset.UtcNow,
+            metrics 
+        };
 
-    var topic = "tenants/innovia/devices/dev-101/measurements";
-    var json = JsonSerializer.Serialize(payload);
+        var topic = $"tenants/Innovia/devices/{device.serial}/measurements"; 
+        var json = JsonSerializer.Serialize(payload);
 
-    var message = new MqttApplicationMessageBuilder()
-        .WithTopic(topic)
-        .WithPayload(Encoding.UTF8.GetBytes(json))
-        .Build();
+        var message = new MqttApplicationMessageBuilder()
+            .WithTopic(topic)
+            .WithPayload(Encoding.UTF8.GetBytes(json))
+            .Build();
 
-    await client.PublishAsync(message);
-    Console.WriteLine($"[{DateTimeOffset.UtcNow:o}] Published to '{topic}': {json}");
+        await client.PublishAsync(message);
+
+        Console.WriteLine($"[{DateTimeOffset.UtcNow:o}] Published to '{topic}': {json}");
+    }
+
+    // Skicka ny uppsättning värden var 10:e sekund
     await Task.Delay(TimeSpan.FromSeconds(10));
 }

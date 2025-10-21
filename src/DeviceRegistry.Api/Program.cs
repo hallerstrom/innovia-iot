@@ -67,6 +67,18 @@ app.MapGet("/api/tenants/{tenantId:guid}/devices/by-serial/{serial}",
     return d is null ? Results.NotFound() : Results.Ok(d);
 });
 
+// Delete a specific device by ID
+app.MapDelete("/api/tenants/{tenantId:guid}/devices/{deviceId:guid}",
+    async (Guid tenantId, Guid deviceId, InnoviaDbContext db) =>
+{
+    var d = await db.Devices.FirstOrDefaultAsync(x => x.TenantId == tenantId && x.Id == deviceId);
+    if (d is null) return Results.NotFound();
+
+    db.Devices.Remove(d);
+    await db.SaveChangesAsync();
+    return Results.NoContent();
+}); 
+
 app.Run();
 
 public class InnoviaDbContext : DbContext
