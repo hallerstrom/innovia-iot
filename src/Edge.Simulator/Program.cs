@@ -22,7 +22,7 @@ catch (Exception ex)
     throw;
 }
 
-// 👇 Lista över dina devices (serial 1–5)
+// Lista över enheter att simulera, 5 av varje typ
 var devices = new[]
 {
     new { serial = "1", model = "TempIoT" },
@@ -45,7 +45,7 @@ while (true)
     foreach (var device in devices)
     {
         object[] metrics;
-
+            // Generera mätvärden baserat på enhetstyp
             if (device.model == "TempIoT")
             {
                 metrics = new object[]
@@ -53,7 +53,7 @@ while (true)
                     new { type = "temperature", value = 20.0 + rand.NextDouble() * 4, unit = "C" }
                 };
             }
-            else
+            else // CO2
             {
                 metrics = new object[]
                 {
